@@ -1,9 +1,29 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Repeat, Trash2 } from "lucide-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { daysLeft, dueStatus, formatDay, pluralDays, type DueStatus } from "@/lib/dates";
-import { useDeleteTask, useToggleTask, type Task } from "@/lib/planner-data";
+import {
+  daysLeft,
+  dueStatus,
+  formatDay,
+  formatWeekday,
+  isRecurring,
+  nextOccurrence,
+  occursOn,
+  pluralDays,
+  repeatLabel,
+  type DueStatus,
+  type Repeat as RepeatKind,
+} from "@/lib/dates";
+import {
+  completionKey,
+  completionsQuery,
+  useDeleteTask,
+  useToggleOccurrence,
+  useToggleTask,
+  type Task,
+} from "@/lib/planner-data";
 
 const statusLabel: Record<DueStatus, string> = {
   done: "Готово",
@@ -44,36 +64,66 @@ export function DueBadge({ task, today }: { task: Task; today: string }) {
   );
 }
 
+export function RepeatBadge({ repeat }: { repeat: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-sm bg-primary px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-primary-foreground [&_svg]:h-3 [&_svg]:w-3">
+      <Repeat aria-hidden />
+      {repeatLabel[repeat as RepeatKind] ?? ""}
+    </span>
+  );
+}
+
 export function TaskRow({
   task,
   today,
   onEdit,
   compact = false,
+  date,
 }: {
   task: Task;
   today: string;
   onEdit: (task: Task) => void;
   compact?: boolean;
+  /** Day this row stands for (repeating tasks are marked done per day). */
+  date?: string;
 }) {
   const toggle = useToggleTask();
+  const toggleOcc = useToggleOccurrence();
   const del = useDeleteTask();
-  const status = dueStatus(task, today);
+  const { data: completions } = useSuspenseQuery(completionsQuery());
+  const recurring = isRecurring(task);
+  const occDate = recurring ? (date ?? (occursOn(task, today) ? today : null)) : null;
+  const doneSet = new Set(completions.map((c) => completionKey(c.task_id, c.date)));
+  const completed = recurring
+    ? occDate !== null && doneSet.has(completionKey(task.id, occDate))
+    : task.completed;
+  const status = recurring ? (completed ? "done" : "later") : dueStatus(task, today);
+  const next = recurring ? nextOccurrence(task, today) : null;
+
+  const onToggle = (v: boolean) => {
+    if (recurring) {
+      if (occDate) toggleOcc.mutate({ taskId: task.id, date: occDate, completed: v });
+    } else {
+      toggle.mutate({ id: task.id, completed: v });
+    }
+  };
 
   return (
     <li
       className={cn(
         "group animate-rise relative flex gap-3 rounded-md border bg-card p-3 shadow-paper transition-colors",
         status === "overdue" && "border-destructive/60",
-        task.completed && "bg-muted/60 shadow-none",
+        completed && "bg-muted/60 shadow-none",
       )}
     >
       {status === "overdue" && (
         <span aria-hidden className="absolute inset-y-2 left-0 w-1 rounded-r bg-destructive" />
       )}
       <Checkbox
-        checked={task.completed}
-        onCheckedChange={(v) => toggle.mutate({ id: task.id, completed: v === true })}
-        aria-label={task.completed ? "Вернуть в работу" : "Отметить выполненной"}
+        checked={completed}
+        disabled={recurring && !occDate}
+        onCheckedChange={(v) => onToggle(v === true)}
+        aria-label={completed ? "Вернуть в работу" : "Отметить выполненной"}
         className="mt-0.5 h-5 w-5 rounded border-2 data-[state=checked]:border-success data-[state=checked]:bg-success data-[state=checked]:text-success-foreground"
       />
       <div className="min-w-0 flex-1">
@@ -81,7 +131,7 @@ export function TaskRow({
           <p
             className={cn(
               "font-medium leading-snug break-words",
-              task.completed && "text-muted-foreground line-through decoration-2",
+              completed && "text-muted-foreground line-through decoration-2",
             )}
           >
             {task.title}
@@ -98,12 +148,22 @@ export function TaskRow({
           </p>
         )}
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {!compact && (
+          {recurring && <RepeatBadge repeat={task.repeat} />}
+          {recurring && !compact && next && (
+            <span className="font-mono text-xs text-muted-foreground">
+              {occDate === today
+                ? completed
+                  ? "сегодня выполнено"
+                  : "сегодня"
+                : `следующий раз: ${formatWeekday(next)}, ${formatDay(next)}`}
+            </span>
+          )}
+          {!recurring && !compact && (
             <span className="font-mono text-xs text-muted-foreground">
               до {formatDay(task.due_date)}
             </span>
           )}
-          {(!compact || status === "overdue" || status === "done") && (
+          {!recurring && (!compact || status === "overdue" || status === "done") && (
             <DueBadge task={task} today={today} />
           )}
         </div>
