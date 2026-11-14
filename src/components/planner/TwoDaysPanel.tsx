@@ -1,8 +1,15 @@
 import { Plus, TriangleAlert } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { addDays, formatDay, formatWeekday, nextTwoDays, overdueTasks } from "@/lib/dates";
-import { tasksQuery, type Task } from "@/lib/planner-data";
+import {
+  addDays,
+  formatDay,
+  formatWeekday,
+  isRecurring,
+  nextTwoDays,
+  overdueTasks,
+} from "@/lib/dates";
+import { completionKey, completionsQuery, tasksQuery, type Task } from "@/lib/planner-data";
 import { TaskRow } from "./TaskRow";
 
 function DayBlock({
@@ -20,7 +27,11 @@ function DayBlock({
   onAdd: (date: string) => void;
   onEdit: (t: Task) => void;
 }) {
-  const done = tasks.filter((t) => t.completed).length;
+  const { data: completions } = useSuspenseQuery(completionsQuery());
+  const doneSet = new Set(completions.map((c) => completionKey(c.task_id, c.date)));
+  const done = tasks.filter((t) =>
+    isRecurring(t) ? doneSet.has(completionKey(t.id, date)) : t.completed,
+  ).length;
   return (
     <div>
       <div className="mb-2 flex items-end justify-between gap-2">
@@ -50,7 +61,7 @@ function DayBlock({
       ) : (
         <ul className="grid gap-2">
           {tasks.map((t) => (
-            <TaskRow key={t.id} task={t} today={today} onEdit={onEdit} compact />
+            <TaskRow key={t.id} task={t} today={today} onEdit={onEdit} compact date={date} />
           ))}
         </ul>
       )}

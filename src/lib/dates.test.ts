@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, dueStatus, nextTwoDays, overdueTasks } from "./dates";
+import { addDays, dueStatus, nextOccurrence, nextTwoDays, occursOn, overdueTasks } from "./dates";
 
 const today = "2026-11-14";
 
@@ -34,5 +34,45 @@ describe("deadline control", () => {
 
   it("a task due today is not overdue", () => {
     expect(dueStatus({ due_date: today, completed: false }, today)).toBe("today");
+  });
+});
+
+describe("repeating tasks", () => {
+  // 2026-11-13 is a Friday, 2026-11-14 a Saturday, 2026-11-15 a Sunday.
+  const weekdays = { due_date: "2026-11-01", repeat: "weekdays", completed: false };
+  const daily = { due_date: "2026-11-01", repeat: "daily", completed: false };
+
+  it("weekdays-only tasks skip Friday and Saturday", () => {
+    expect(occursOn(weekdays, "2026-11-13")).toBe(false);
+    expect(occursOn(weekdays, "2026-11-14")).toBe(false);
+  });
+
+  it("weekdays-only tasks run Sunday through Thursday", () => {
+    for (const d of ["2026-11-15", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19"]) {
+      expect(occursOn(weekdays, d)).toBe(true);
+    }
+  });
+
+  it("daily tasks run every day including Friday and Saturday", () => {
+    expect(occursOn(daily, "2026-11-13")).toBe(true);
+    expect(occursOn(daily, "2026-11-14")).toBe(true);
+  });
+
+  it("repeating tasks do not start before their start date", () => {
+    expect(occursOn({ ...daily, due_date: "2026-11-20" }, "2026-11-19")).toBe(false);
+  });
+
+  it("appear in the two-day plan on the days they run", () => {
+    const plan = nextTwoDays([weekdays, daily], today); // Saturday + Sunday
+    expect(plan.today).toEqual([daily]);
+    expect(plan.tomorrow).toEqual([weekdays, daily]);
+  });
+
+  it("are never counted as overdue", () => {
+    expect(overdueTasks([weekdays, daily], today)).toHaveLength(0);
+  });
+
+  it("next weekday occurrence after a Friday is Sunday", () => {
+    expect(nextOccurrence(weekdays, "2026-11-13")).toBe("2026-11-15");
   });
 });

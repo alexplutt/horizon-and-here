@@ -5,7 +5,7 @@ import { LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFull, formatWeekday, toISODate } from "@/lib/dates";
-import { goalsQuery, tasksQuery, type Task } from "@/lib/planner-data";
+import { completionsQuery, goalsQuery, tasksQuery, type Task } from "@/lib/planner-data";
 import { GoalsPanel } from "@/components/planner/GoalsPanel";
 import { TwoDaysPanel } from "@/components/planner/TwoDaysPanel";
 import { TasksBoard } from "@/components/planner/TasksBoard";
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(tasksQuery());
     context.queryClient.ensureQueryData(goalsQuery());
+    context.queryClient.ensureQueryData(completionsQuery());
   },
   pendingComponent: () => (
     <div className="flex min-h-screen items-center justify-center bg-paper-grid font-mono text-sm text-muted-foreground">
