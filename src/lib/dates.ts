@@ -19,35 +19,79 @@ export function parseISODate(iso: string): Date {
   return new Date(y, m - 1, d);
 }
 
+export type Repeat = "none" | "daily" | "weekdays";
+
+export function isRecurring(task: { repeat?: string | undefined }): boolean {
+  return task.repeat === "daily" || task.repeat === "weekdays";
+}
+
+/** Weekend is Friday and Saturday; weekdays (будни) are Sunday–Thursday. */
+export function isWeekend(iso: string): boolean {
+  const day = parseISODate(iso).getDay(); // 0 = Sunday … 5 = Friday, 6 = Saturday
+  return day === 5 || day === 6;
+}
+
+/** Whether a task falls on the given day. Recurring tasks start on their due_date. */
+export function occursOn(task: { due_date: string; repeat?: string | undefined }, date: string) {
+  if (!isRecurring(task)) return task.due_date === date;
+  if (date < task.due_date) return false;
+  if (task.repeat === "weekdays") return !isWeekend(date);
+  return true;
+}
+
+/** First day on or after `from` when a recurring task occurs. */
+export function nextOccurrence(
+  task: { due_date: string; repeat?: string | undefined },
+  from: string,
+): string {
+  let d = from < task.due_date ? task.due_date : from;
+  for (let i = 0; i < 7 && !occursOn(task, d); i++) d = addDays(d, 1);
+  return d;
+}
+
 export type DueStatus = "done" | "overdue" | "today" | "tomorrow" | "later";
 
 export function dueStatus(
-  task: { due_date: string; completed: boolean },
+  task: { due_date: string; completed: boolean; repeat?: string | undefined },
   today: string,
 ): DueStatus {
   if (task.completed) return "done";
+  if (isRecurring(task)) {
+    const next = nextOccurrence(task, today);
+    if (next === today) return "today";
+    if (next === addDays(today, 1)) return "tomorrow";
+    return "later";
+  }
   if (task.due_date < today) return "overdue";
   if (task.due_date === today) return "today";
   if (task.due_date === addDays(today, 1)) return "tomorrow";
   return "later";
 }
 
-/** Tasks whose deadline falls on today or tomorrow (the "next two days" plan). */
-export function nextTwoDays<T extends { due_date: string }>(tasks: T[], today: string) {
-  const tomorrow = addDays(today, 1);
-  return {
-    today: tasks.filter((t) => t.due_date === today),
-    tomorrow: tasks.filter((t) => t.due_date === tomorrow),
-  };
-}
-
-/** Unfinished tasks whose deadline has already passed. */
-export function overdueTasks<T extends { due_date: string; completed: boolean }>(
+/** Tasks planned for today or tomorrow (the "next two days" plan), including repeating ones. */
+export function nextTwoDays<T extends { due_date: string; repeat?: string | undefined }>(
   tasks: T[],
   today: string,
 ) {
-  return tasks.filter((t) => !t.completed && t.due_date < today);
+  const tomorrow = addDays(today, 1);
+  return {
+    today: tasks.filter((t) => occursOn(t, today)),
+    tomorrow: tasks.filter((t) => occursOn(t, tomorrow)),
+  };
 }
+
+/** Unfinished one-off tasks whose deadline has already passed. Repeating tasks are never overdue. */
+export function overdueTasks<
+  T extends { due_date: string; completed: boolean; repeat?: string | undefined },
+>(tasks: T[], today: string) {
+  return tasks.filter((t) => !isRecurring(t) && !t.completed && t.due_date < today);
+}
+
+export const repeatLabel: Record<Repeat, string> = {
+  none: "",
+  daily: "Ежедневно",
+  weekdays: "По будням (вс–чт)",
+};
 
 export function daysLeft(iso: string, today: string): number {
   const ms = parseISODate(iso).getTime() - parseISODate(today).getTime();
