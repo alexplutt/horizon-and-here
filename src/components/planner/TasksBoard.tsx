@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ClipboardList } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { dueStatus, formatDay, formatWeekday } from "@/lib/dates";
+import { dueStatus, formatDay, formatWeekday, isRecurring } from "@/lib/dates";
 import { tasksQuery, type Task } from "@/lib/planner-data";
 import { TaskRow } from "./TaskRow";
 
@@ -19,9 +19,12 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task)
   const { data: tasks } = useSuspenseQuery(tasksQuery());
   const [filter, setFilter] = useState<Filter>("active");
 
+  const recurring = tasks.filter((t) => isRecurring(t));
+  const oneOff = tasks.filter((t) => !isRecurring(t));
+
   const counts = useMemo(() => {
-    const c = { active: 0, overdue: 0, done: 0, all: tasks.length };
-    for (const t of tasks) {
+    const c = { active: recurring.length, overdue: 0, done: 0, all: tasks.length };
+    for (const t of oneOff) {
       const s = dueStatus(t, today);
       if (s === "done") c.done++;
       else c.active++;
@@ -30,7 +33,9 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task)
     return c;
   }, [tasks, today]);
 
-  const visible = tasks.filter((t) => {
+  const showRecurring = (filter === "active" || filter === "all") && recurring.length > 0;
+
+  const visible = oneOff.filter((t) => {
     const s = dueStatus(t, today);
     if (filter === "active") return s !== "done";
     if (filter === "overdue") return s === "overdue";
@@ -50,14 +55,14 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task)
     return [...map.entries()];
   }, [visible, filter]);
 
-  const pct = tasks.length ? Math.round((counts.done / tasks.length) * 100) : 0;
+  const pct = oneOff.length ? Math.round((counts.done / oneOff.length) * 100) : 0;
 
   return (
     <section aria-labelledby="board-title" className="min-w-0">
       <div className="mb-5 grid grid-cols-3 gap-3">
         <Stat label="В работе" value={counts.active} />
         <Stat label="Просрочено" value={counts.overdue} tone={counts.overdue > 0 ? "danger" : undefined} />
-        <Stat label="Выполнено" value={`${pct}%`} tone="success" sub={`${counts.done} из ${tasks.length}`} />
+        <Stat label="Выполнено" value={`${pct}%`} tone="success" sub={`${counts.done} из ${oneOff.length} разовых`} />
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -85,7 +90,23 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task)
         </div>
       </div>
 
-      {groups.length === 0 ? (
+      {showRecurring && (
+        <div className="mb-6">
+          <div className="mb-2 flex items-baseline gap-3 border-b border-dashed pb-1">
+            <span className="font-display text-sm font-semibold">Регулярные</span>
+            <span className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+              отмечаются за каждый день
+            </span>
+          </div>
+          <ul className="grid gap-2">
+            {recurring.map((t) => (
+              <TaskRow key={t.id} task={t} today={today} onEdit={onEdit} />
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {groups.length === 0 && !showRecurring ? (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed bg-card/60 px-6 py-16 text-center">
           <ClipboardList className="h-8 w-8 text-muted-foreground" />
           <p className="text-muted-foreground">
