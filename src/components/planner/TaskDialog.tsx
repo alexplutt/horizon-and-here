@@ -22,8 +22,8 @@ export function TaskDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  task?: Task | null;
-  defaultDate?: string;
+  task?: Task | null | undefined;
+  defaultDate?: string | undefined;
 }) {
   const save = useSaveTask();
   const today = toISODate(new Date());

@@ -137,8 +137,8 @@ function Stat({
 }: {
   label: string;
   value: number | string;
-  sub?: string;
-  tone?: "danger" | "success";
+  sub?: string | undefined;
+  tone?: "danger" | "success" | undefined;
 }) {
   return (
     <div className="rounded-md border bg-card p-3 shadow-paper">

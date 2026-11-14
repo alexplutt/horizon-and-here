@@ -9,14 +9,13 @@ export function toISODate(d: Date): string {
 }
 
 export function addDays(iso: string, days: number): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
+  const date = parseISODate(iso);
   date.setDate(date.getDate() + days);
   return toISODate(date);
 }
 
 export function parseISODate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
+  const [y = 1970, m = 1, d = 1] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
 

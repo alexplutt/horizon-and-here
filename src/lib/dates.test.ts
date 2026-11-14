@@ -29,7 +29,7 @@ describe("deadline control", () => {
   it("does not count a completed task as overdue", () => {
     const tasks = [{ due_date: "2026-11-10", completed: true }];
     expect(overdueTasks(tasks, today)).toHaveLength(0);
-    expect(dueStatus(tasks[0], today)).toBe("done");
+    expect(dueStatus({ due_date: "2026-11-10", completed: true }, today)).toBe("done");
   });
 
   it("a task due today is not overdue", () => {

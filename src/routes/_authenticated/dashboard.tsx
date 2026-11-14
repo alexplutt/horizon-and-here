@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-paper-grid p-6 text-center">
         <p className="font-display text-lg">Не удалось загрузить задачи</p>
-        <p className="text-sm text-muted-foreground">{error.message}</p>
+        <p className="text-sm text-muted-foreground">{error instanceof Error ? error.message : String(error)}</p>
         <Button variant="ink" onClick={() => router.invalidate()}>
           Повторить
         </Button>

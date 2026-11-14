@@ -46,7 +46,7 @@ function onError(e: unknown) {
 export function useSaveTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...input }: TaskInput & { id?: string }) => {
+    mutationFn: async ({ id, ...input }: TaskInput & { id?: string | undefined }) => {
       const { error } = id
         ? await supabase.from("tasks").update(input).eq("id", id)
         : await supabase.from("tasks").insert(input);
@@ -98,7 +98,7 @@ export function useDeleteTask() {
 export function useSaveGoal() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...input }: GoalInput & { id?: string }) => {
+    mutationFn: async ({ id, ...input }: GoalInput & { id?: string | undefined }) => {
       const { error } = id
         ? await supabase.from("goals").update(input).eq("id", id)
         : await supabase.from("goals").insert(input);
