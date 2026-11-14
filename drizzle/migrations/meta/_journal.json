@@ -8,6 +8,13 @@
       "when": 1794662349351,
       "tag": "0000_create_tasks_and_goals",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794663554657,
+      "tag": "0001_recurring_tasks",
+      "breakpoints": true
     }
   ]
 }

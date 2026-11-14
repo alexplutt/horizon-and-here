@@ -44,6 +44,38 @@ export type Database = {
         }
         Relationships: []
       }
+      task_completions: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          task_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_completions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           completed: boolean
@@ -52,6 +84,7 @@ export type Database = {
           description: string
           due_date: string
           id: string
+          repeat: string
           title: string
           user_id: string
         }
@@ -62,6 +95,7 @@ export type Database = {
           description?: string
           due_date: string
           id?: string
+          repeat?: string
           title: string
           user_id?: string
         }
@@ -72,6 +106,7 @@ export type Database = {
           description?: string
           due_date?: string
           id?: string
+          repeat?: string
           title?: string
           user_id?: string
         }
