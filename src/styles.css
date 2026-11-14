@@ -81,6 +81,9 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-google-bg: var(--google-bg);
+  --color-google-border: var(--google-border);
+  --color-google-text: var(--google-text);
   --shadow-paper: var(--shadow-paper-value);
   --shadow-lift: var(--shadow-lift-value);
 }
@@ -131,6 +134,10 @@
   --shadow-paper-value: 0 1px 0 oklch(0.21 0.018 60 / 6%), 0 2px 8px -2px oklch(0.21 0.018 60 / 8%);
   --shadow-lift-value: 0 4px 0 oklch(0.21 0.018 60 / 100%);
   --grid-dot: oklch(0.21 0.018 60 / 9%);
+  /* Google sign-in brand colors (light theme, per Google branding guidelines) */
+  --google-bg: #ffffff;
+  --google-border: #747775;
+  --google-text: #1f1f1f;
 }
 
 .dark {

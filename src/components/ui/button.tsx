@@ -19,6 +19,8 @@ const buttonVariants = cva(
         signal:
           "bg-accent text-accent-foreground font-semibold shadow-paper hover:bg-accent/90 active:translate-y-px",
         ink: "bg-primary text-primary-foreground font-semibold border border-primary shadow-lift hover:-translate-y-px active:translate-y-0.5 active:shadow-none transition-transform",
+        google:
+          "border border-google-border bg-google-bg text-google-text font-medium hover:brightness-95 [&_svg]:size-[18px]",
         panel:
           "border border-panel-border bg-transparent text-panel-foreground hover:bg-panel-border/60",
       },
