@@ -129,16 +129,16 @@ function AuthPage() {
 
           {mode !== "forgot" && (
             <div className="mt-6 grid gap-2">
-              <Button variant="google" className="h-10 w-full" onClick={() => oauth("google")}>
+              <Button variant="google" className="h-[42px] w-full" onClick={() => oauth("google")}>
                 <GoogleLogo />
-                Continue with Google
+                Продолжить с Google
               </Button>
               <button
                 type="button"
                 className="lovable-auth-button w-full"
                 onClick={() => oauth("lovable")}
               >
-                Continue with Lovable
+                Продолжить с Lovable
               </button>
               <div className="my-3 flex items-center gap-3 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
                 <span className="h-px flex-1 bg-border" /> или по почте <span className="h-px flex-1 bg-border" />
