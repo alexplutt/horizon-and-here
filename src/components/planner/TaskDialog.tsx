@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { addDays, toISODate } from "@/lib/dates";
 import { useSaveTask, type Task } from "@/lib/planner-data";
 
@@ -30,12 +31,16 @@ export function TaskDialog({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState(today);
+  const [daily, setDaily] = useState(false);
+  const [weekdaysOnly, setWeekdaysOnly] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setTitle(task?.title ?? "");
     setDescription(task?.description ?? "");
     setDueDate(task?.due_date ?? defaultDate ?? today);
+    setDaily(task?.repeat === "daily" || task?.repeat === "weekdays");
+    setWeekdaysOnly(task?.repeat === "weekdays");
   }, [open, task, defaultDate, today]);
 
   async function submit(e: FormEvent) {
@@ -46,6 +51,7 @@ export function TaskDialog({
       title: title.trim(),
       description: description.trim(),
       due_date: dueDate,
+      repeat: weekdaysOnly ? "weekdays" : daily ? "daily" : "none",
     });
     onOpenChange(false);
   }
@@ -93,7 +99,7 @@ export function TaskDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="task-due">Крайний срок</Label>
+            <Label htmlFor="task-due">{daily ? "Начиная с" : "Крайний срок"}</Label>
             <div className="flex flex-wrap items-center gap-2">
               <Input
                 id="task-due"
@@ -116,6 +122,39 @@ export function TaskDialog({
               ))}
             </div>
           </div>
+
+          <fieldset className="grid gap-3 rounded-md border border-dashed p-3">
+            <legend className="px-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+              Повтор
+            </legend>
+            <label className="flex cursor-pointer items-center gap-2.5 text-sm">
+              <Checkbox
+                checked={daily}
+                onCheckedChange={(v) => {
+                  setDaily(v === true);
+                  if (v !== true) setWeekdaysOnly(false);
+                }}
+              />
+              Ежедневно
+            </label>
+            <label className="flex cursor-pointer items-center gap-2.5 text-sm">
+              <Checkbox
+                checked={weekdaysOnly}
+                onCheckedChange={(v) => {
+                  setWeekdaysOnly(v === true);
+                  if (v === true) setDaily(true);
+                }}
+              />
+              Только будни
+              <span className="text-xs text-muted-foreground">вс–чт, без пятницы и субботы</span>
+            </label>
+            {daily && (
+              <p className="text-xs text-muted-foreground">
+                Задача будет появляться {weekdaysOnly ? "каждый будний день" : "каждый день"} и
+                отмечаться выполненной отдельно за каждый день.
+              </p>
+            )}
+          </fieldset>
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
