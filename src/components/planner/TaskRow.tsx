@@ -19,11 +19,13 @@ import {
 import {
   completionKey,
   completionsQuery,
+  overridesQuery,
   useDeleteTask,
   useToggleOccurrence,
   useToggleTask,
   type Task,
 } from "@/lib/planner-data";
+import { taskOnDay } from "@/lib/overrides";
 
 const statusLabel: Record<DueStatus, string> = {
   done: "Готово",
@@ -74,7 +76,7 @@ export function RepeatBadge({ repeat }: { repeat: string }) {
 }
 
 export function TaskRow({
-  task,
+  task: baseTask,
   today,
   onEdit,
   compact = false,
@@ -82,7 +84,7 @@ export function TaskRow({
 }: {
   task: Task;
   today: string;
-  onEdit: (task: Task) => void;
+  onEdit: (task: Task, date?: string) => void;
   compact?: boolean;
   /** Day this row stands for (repeating tasks are marked done per day). */
   date?: string;
@@ -91,7 +93,10 @@ export function TaskRow({
   const toggleOcc = useToggleOccurrence();
   const del = useDeleteTask();
   const { data: completions } = useSuspenseQuery(completionsQuery());
-  const recurring = isRecurring(task);
+  const { data: overrides } = useSuspenseQuery(overridesQuery());
+  const recurring = isRecurring(baseTask);
+  // In a specific day (plan panel) show that day's own edit; the general list shows the series.
+  const task = recurring && date ? taskOnDay(baseTask, overrides, date) : baseTask;
   const occDate = recurring ? (date ?? (occursOn(task, today) ? today : null)) : null;
   const doneSet = new Set(completions.map((c) => completionKey(c.task_id, c.date)));
   const completed = recurring
@@ -173,7 +178,7 @@ export function TaskRow({
           size="icon"
           variant="ghost"
           className="h-7 w-7"
-          onClick={() => onEdit(task)}
+          onClick={() => onEdit(baseTask, recurring ? date : undefined)}
           aria-label="Изменить задачу"
         >
           <Pencil />

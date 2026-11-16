@@ -25,7 +25,7 @@ function DayBlock({
   tasks: Task[];
   today: string;
   onAdd: (date: string) => void;
-  onEdit: (t: Task) => void;
+  onEdit: (t: Task, date?: string) => void;
 }) {
   const { data: completions } = useSuspenseQuery(completionsQuery());
   const doneSet = new Set(completions.map((c) => completionKey(c.task_id, c.date)));
@@ -76,7 +76,7 @@ export function TwoDaysPanel({
 }: {
   today: string;
   onAdd: (date: string) => void;
-  onEdit: (t: Task) => void;
+  onEdit: (t: Task, date?: string) => void;
 }) {
   const { data: tasks } = useSuspenseQuery(tasksQuery());
   const plan = nextTwoDays(tasks, today);

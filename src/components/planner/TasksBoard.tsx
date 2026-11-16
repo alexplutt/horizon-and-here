@@ -15,7 +15,7 @@ const filters: { id: Filter; label: string }[] = [
   { id: "all", label: "Все" },
 ];
 
-export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task) => void }) {
+export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task, date?: string) => void }) {
   const { data: tasks } = useSuspenseQuery(tasksQuery());
   const [filter, setFilter] = useState<Filter>("active");
 
