@@ -34,3 +34,4 @@ use the editor.
 - Tasks and goals are read/written from the browser with the generated client and protected by per-user RLS (`user_id = auth.uid()`); why: simple per-user data with no server logic needed.
 - Signed-in pages live under `src/routes/_authenticated/` (client-only gate, redirects to `/auth`); why: the session is stored in the browser.
 - Due dates are plain `date` values compared as local `YYYY-MM-DD` strings via `src/lib/dates.ts`; why: avoids time-zone drift around "today/tomorrow/overdue".
+- One-day edits of repeating tasks live in `task_overrides` (task_id + date → title/description) and are applied only in day views via `src/lib/overrides.ts`; why: the series row stays the source for every other day.

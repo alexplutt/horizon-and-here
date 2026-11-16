@@ -2,6 +2,7 @@ import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { isSameAsBase, type DayOverride } from "@/lib/overrides";
 
 export type Task = Tables<"tasks">;
 export type Goal = Tables<"goals">;
@@ -45,6 +46,22 @@ export const completionsQuery = () =>
       const { data, error } = await supabase
         .from("task_completions")
         .select("task_id, date")
+        .gte("date", since.toISOString().slice(0, 10));
+      if (error) throw error;
+      return data;
+    },
+  });
+
+/** Day-only edits of repeating tasks (title/description for one date). */
+export const overridesQuery = () =>
+  queryOptions({
+    queryKey: ["overrides"],
+    queryFn: async (): Promise<DayOverride[]> => {
+      const since = new Date();
+      since.setDate(since.getDate() - 30);
+      const { data, error } = await supabase
+        .from("task_overrides")
+        .select("task_id, date, title, description")
         .gte("date", since.toISOString().slice(0, 10));
       if (error) throw error;
       return data;
@@ -135,6 +152,33 @@ export function useToggleOccurrence() {
       onError(e);
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["completions"] }),
+  });
+}
+
+/** Save an edit of a repeating task that applies to one day only. */
+export function useSaveDayEdit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      task,
+      date,
+      title,
+      description,
+    }: {
+      task: Task;
+      date: string;
+      title: string;
+      description: string;
+    }) => {
+      const { error } = isSameAsBase(task, { title, description })
+        ? await supabase.from("task_overrides").delete().eq("task_id", task.id).eq("date", date)
+        : await supabase
+            .from("task_overrides")
+            .upsert({ task_id: task.id, date, title, description }, { onConflict: "task_id,date" });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["overrides"] }),
+    onError,
   });
 }
 
