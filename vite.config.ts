@@ -1,18 +1,21 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - TanStack devtools (dev-only, first), tanstackStart, viteReact, tailwindcss, tsConfigPaths,
-//     nitro (build-only using cloudflare as a default target), VITE_* env injection, @ path alias,
-//     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
-// Never set ssr.external or resolve.external: the Worker has no runtime module resolution, so
-// the build fails. Never add compression (compressPublicAssets, vite-plugin-compression):
-// hosting already compresses at the edge.
-// You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { defineConfig as defineViteConfig } from "vite";
+import netlify from "@netlify/vite-plugin-tanstack-start";
+import { defineConfig as defineLovableConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig({
-  tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
-  },
+export default defineViteConfig(async (env) => {
+  const isNetlify = Boolean(process.env.NETLIFY);
+  const config = await defineLovableConfig({
+    tanstackStart: {
+      // Keep the app's SSR error wrapper as the TanStack Start server entry.
+      server: { entry: "server" },
+    },
+    // Netlify's TanStack Start plugin configures the server runtime itself.
+    // Keep Lovable's default Nitro target for builds outside Netlify.
+    nitro: isNetlify ? false : undefined,
+  })(env);
+
+  if (isNetlify) {
+    config.plugins = [...(config.plugins ?? []), netlify()];
+  }
+  return config;
 });
