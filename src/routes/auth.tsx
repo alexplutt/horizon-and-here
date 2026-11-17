@@ -87,15 +87,26 @@ function AuthPage() {
   }
 
   async function oauth(provider: "google" | "lovable") {
-    const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Не удалось войти", { description: result.error.message });
-      return;
+    try {
+      if (provider === "google" && !usesLovableOAuth()) {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: new URL(target, window.location.origin).toString() },
+        });
+        if (error) throw error;
+        return;
+      }
+
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      navigate({ href: target, replace: true });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error("Не удалось войти", { description: message });
     }
-    if (result.redirected) return;
-    navigate({ href: target, replace: true });
   }
 
   const title =
@@ -218,6 +229,19 @@ function AuthPage() {
       </div>
     </div>
   );
+}
+
+function usesLovableOAuth(): boolean {
+  const hostname = window.location.hostname;
+  const lovableDomains = [
+    "lovable.dev",
+    "lovable.app",
+    "lovableproject.com",
+    "lovableproject-dev.com",
+    "gpt-eng.com",
+    "gptengineer.run",
+  ];
+  return lovableDomains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`));
 }
 
 function translateError(err: unknown): string {
