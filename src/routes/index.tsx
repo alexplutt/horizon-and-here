@@ -97,6 +97,13 @@ function Index() {
           />
         </div>
       </main>
+
+      <footer className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-6 text-sm text-muted-foreground">
+        <span>© 2026 Срок</span>
+        <Link to="/privacy" className="underline underline-offset-4 hover:text-foreground">
+          Политика конфиденциальности
+        </Link>
+      </footer>
     </div>
   );
 }
