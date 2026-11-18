@@ -104,6 +104,8 @@ export function TaskRow({
     : task.completed;
   const status = recurring ? (completed ? "done" : "later") : dueStatus(task, today);
   const next = recurring ? nextOccurrence(task, today) : null;
+  // A past day of a repeating task that was never marked done (shown in the archive).
+  const missed = recurring && !!date && date < today && !completed;
 
   const onToggle = (v: boolean) => {
     if (recurring) {
@@ -154,7 +156,12 @@ export function TaskRow({
         )}
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {recurring && <RepeatBadge repeat={task.repeat} />}
-          {recurring && !compact && next && (
+          {missed && (
+            <span className="inline-flex items-center rounded-sm bg-destructive/10 px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-destructive">
+              Не выполнено
+            </span>
+          )}
+          {recurring && !compact && next && !(date && date < today) && (
             <span className="font-mono text-xs text-muted-foreground">
               {occDate === today
                 ? completed

@@ -5,14 +5,17 @@ import { cn } from "@/lib/utils";
 import { dueStatus, formatDay, formatWeekday, isRecurring } from "@/lib/dates";
 import { tasksQuery, type Task } from "@/lib/planner-data";
 import { TaskRow } from "./TaskRow";
+import { ArchiveView } from "./ArchiveView";
+import { pastDays } from "@/lib/archive";
 
-type Filter = "active" | "overdue" | "done" | "all";
+type Filter = "active" | "overdue" | "done" | "all" | "archive";
 
 const filters: { id: Filter; label: string }[] = [
   { id: "active", label: "В работе" },
   { id: "overdue", label: "Просрочено" },
   { id: "done", label: "Выполнено" },
   { id: "all", label: "Все" },
+  { id: "archive", label: "Архив" },
 ];
 
 export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task, date?: string) => void }) {
@@ -23,7 +26,13 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task,
   const oneOff = tasks.filter((t) => !isRecurring(t));
 
   const counts = useMemo(() => {
-    const c = { active: recurring.length, overdue: 0, done: 0, all: tasks.length };
+    const c = {
+      active: recurring.length,
+      overdue: 0,
+      done: 0,
+      all: tasks.length,
+      archive: pastDays(tasks, today, 30).length,
+    };
     for (const t of oneOff) {
       const s = dueStatus(t, today);
       if (s === "done") c.done++;
@@ -67,7 +76,7 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task,
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 id="board-title" className="text-xl font-semibold">
-          Все задачи
+          {filter === "archive" ? "Архив прошедших дней" : "Все задачи"}
         </h2>
         <div role="tablist" aria-label="Фильтр задач" className="flex flex-wrap gap-1 rounded-md border bg-card p-1">
           {filters.map((f) => (
@@ -84,7 +93,12 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task,
               )}
             >
               {f.label}
-              <span className="ml-1.5 font-mono text-xs opacity-70">{counts[f.id]}</span>
+              <span
+                className="ml-1.5 font-mono text-xs opacity-70"
+                title={f.id === "archive" ? "дней за последний месяц" : undefined}
+              >
+                {counts[f.id]}
+              </span>
             </button>
           ))}
         </div>
@@ -106,7 +120,9 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task,
         </div>
       )}
 
-      {groups.length === 0 && !showRecurring ? (
+      {filter === "archive" ? (
+        <ArchiveView today={today} onEdit={onEdit} />
+      ) : groups.length === 0 && !showRecurring ? (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed bg-card/60 px-6 py-16 text-center">
           <ClipboardList className="h-8 w-8 text-muted-foreground" />
           <p className="text-muted-foreground">

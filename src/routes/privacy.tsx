@@ -20,7 +20,11 @@ function PrivacyPage() {
         <Link to="/" className="font-display text-xl font-bold">
           Срок<span className="text-accent">.</span>
         </Link>
-        <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/auth"
+          search={{ redirect: undefined }}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
           Войти
         </Link>
       </header>

@@ -36,17 +36,12 @@ export const goalsQuery = () =>
     },
   });
 
-/** Per-day done marks for repeating tasks (recent window is enough for the UI). */
+/** Per-day done marks for repeating tasks (full history, needed by the archive). */
 export const completionsQuery = () =>
   queryOptions({
     queryKey: ["completions"],
     queryFn: async () => {
-      const since = new Date();
-      since.setDate(since.getDate() - 30);
-      const { data, error } = await supabase
-        .from("task_completions")
-        .select("task_id, date")
-        .gte("date", since.toISOString().slice(0, 10));
+      const { data, error } = await supabase.from("task_completions").select("task_id, date");
       if (error) throw error;
       return data;
     },
@@ -57,12 +52,9 @@ export const overridesQuery = () =>
   queryOptions({
     queryKey: ["overrides"],
     queryFn: async (): Promise<DayOverride[]> => {
-      const since = new Date();
-      since.setDate(since.getDate() - 30);
       const { data, error } = await supabase
         .from("task_overrides")
-        .select("task_id, date, title, description")
-        .gte("date", since.toISOString().slice(0, 10));
+        .select("task_id, date, title, description");
       if (error) throw error;
       return data;
     },
