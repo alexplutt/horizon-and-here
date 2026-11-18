@@ -88,7 +88,7 @@ export function TaskRow({
   onEdit: (task: Task, date?: string) => void;
   compact?: boolean;
   /** Day this row stands for (repeating tasks are marked done per day). */
-  date?: string;
+  date?: string | undefined;
   /** Falls after the current week: shown on a different background. */
   later?: boolean;
 }) {
