@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { CalendarClock, Mountain, TriangleAlert } from "lucide-react";
+import { Archive, CalendarClock, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -91,9 +91,9 @@ function Index() {
             text="Сегодня и завтра всегда на экране, чтобы день начинался с ясности."
           />
           <Feature
-            icon={<TriangleAlert />}
-            title="Контроль сроков"
-            text="Просроченные задачи подсвечиваются красным и не дают о себе забыть."
+            icon={<Archive />}
+            title="Архив прошедших дней"
+            text="Задачи прошедших дат сохраняются в архиве — с отметками, что было выполнено."
           />
         </div>
       </main>

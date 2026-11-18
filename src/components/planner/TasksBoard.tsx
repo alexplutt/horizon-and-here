@@ -8,11 +8,10 @@ import { TaskRow } from "./TaskRow";
 import { ArchiveView } from "./ArchiveView";
 import { pastDays } from "@/lib/archive";
 
-type Filter = "active" | "overdue" | "done" | "all" | "archive";
+type Filter = "active" | "done" | "all" | "archive";
 
 const filters: { id: Filter; label: string }[] = [
   { id: "active", label: "В работе" },
-  { id: "overdue", label: "Просрочено" },
   { id: "done", label: "Выполнено" },
   { id: "all", label: "Все" },
   { id: "archive", label: "Архив" },
@@ -28,16 +27,18 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task,
   const counts = useMemo(() => {
     const c = {
       active: recurring.length,
-      overdue: 0,
       done: 0,
-      all: tasks.length,
+      all: 0,
       archive: pastDays(tasks, today, 30).length,
     };
     for (const t of oneOff) {
       const s = dueStatus(t, today);
       if (s === "done") c.done++;
-      else c.active++;
-      if (s === "overdue") c.overdue++;
+      // Unfinished tasks past their date live only in the archive, not in the list.
+      if (s !== "overdue") {
+        if (s !== "done") c.active++;
+        c.all++;
+      }
     }
     return c;
   }, [tasks, today]);
@@ -46,10 +47,9 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task,
 
   const visible = oneOff.filter((t) => {
     const s = dueStatus(t, today);
-    if (filter === "active") return s !== "done";
-    if (filter === "overdue") return s === "overdue";
+    if (filter === "active") return s !== "done" && s !== "overdue";
     if (filter === "done") return s === "done";
-    return true;
+    return s !== "overdue";
   });
 
   // Group by deadline day
@@ -70,7 +70,7 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task,
     <section aria-labelledby="board-title" className="min-w-0">
       <div className="mb-5 grid grid-cols-3 gap-3">
         <Stat label="В работе" value={counts.active} />
-        <Stat label="Просрочено" value={counts.overdue} tone={counts.overdue > 0 ? "danger" : undefined} />
+        <Stat label="В архиве" value={counts.archive} sub="дней за месяц" />
         <Stat label="Выполнено" value={`${pct}%`} tone="success" sub={`${counts.done} из ${oneOff.length} разовых`} />
       </div>
 
@@ -126,11 +126,9 @@ export function TasksBoard({ today, onEdit }: { today: string; onEdit: (t: Task,
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed bg-card/60 px-6 py-16 text-center">
           <ClipboardList className="h-8 w-8 text-muted-foreground" />
           <p className="text-muted-foreground">
-            {filter === "overdue"
-              ? "Просроченных задач нет — так держать."
-              : filter === "done"
-                ? "Здесь появятся выполненные задачи."
-                : "Задач пока нет. Добавьте первую кнопкой «Новая задача»."}
+            {filter === "done"
+              ? "Здесь появятся выполненные задачи."
+              : "Задач пока нет. Добавьте первую кнопкой «Новая задача»."}
           </p>
         </div>
       ) : (

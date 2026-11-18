@@ -1,14 +1,7 @@
-import { Plus, TriangleAlert } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import {
-  addDays,
-  formatDay,
-  formatWeekday,
-  isRecurring,
-  nextTwoDays,
-  overdueTasks,
-} from "@/lib/dates";
+import { addDays, formatDay, formatWeekday, isRecurring, nextTwoDays } from "@/lib/dates";
 import { completionKey, completionsQuery, tasksQuery, type Task } from "@/lib/planner-data";
 import { TaskRow } from "./TaskRow";
 
@@ -80,7 +73,6 @@ export function TwoDaysPanel({
 }) {
   const { data: tasks } = useSuspenseQuery(tasksQuery());
   const plan = nextTwoDays(tasks, today);
-  const overdue = overdueTasks(tasks, today);
 
   return (
     <section
@@ -96,18 +88,6 @@ export function TwoDaysPanel({
         </h2>
       </header>
       <div className="flex-1 space-y-6 overflow-y-auto p-4">
-        {overdue.length > 0 && (
-          <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3">
-            <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-destructive">
-              <TriangleAlert className="h-4 w-4" /> Просрочено: {overdue.length}
-            </p>
-            <ul className="grid gap-2">
-              {overdue.map((t) => (
-                <TaskRow key={t.id} task={t} today={today} onEdit={onEdit} compact />
-              ))}
-            </ul>
-          </div>
-        )}
         <DayBlock
           label="Сегодня"
           date={today}

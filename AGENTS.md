@@ -36,3 +36,4 @@ use the editor.
 - Due dates are plain `date` values compared as local `YYYY-MM-DD` strings via `src/lib/dates.ts`; why: avoids time-zone drift around "today/tomorrow/overdue".
 - One-day edits of repeating tasks live in `task_overrides` (task_id + date → title/description) and are applied only in day views via `src/lib/overrides.ts`; why: the series row stays the source for every other day.
 - The archive of past days is derived from tasks + task_completions + task_overrides in `src/lib/archive.ts` (no separate table); why: past data already lives there, so nothing has to be copied or moved.
+- Unfinished one-off tasks past their date appear only in the archive, never in the 2-day plan or the task list; why: the user decided overdue tasks should leave the plan instead of piling up as "просрочено".
