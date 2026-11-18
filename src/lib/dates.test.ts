@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, dueStatus, nextOccurrence, nextTwoDays, occursOn, overdueTasks } from "./dates";
+import { addDays, dueStatus, inMonthWindow, monthAhead, nextWeekStart, nextOccurrence, nextTwoDays, occursOn, overdueTasks } from "./dates";
 
 const today = "2026-11-14";
 
@@ -74,5 +74,22 @@ describe("repeating tasks", () => {
 
   it("next weekday occurrence after a Friday is Sunday", () => {
     expect(nextOccurrence(weekdays, "2026-11-13")).toBe("2026-11-15");
+  });
+});
+
+describe("task list window", () => {
+  it("next week starts on the nearest Sunday after today", () => {
+    expect(nextWeekStart("2026-11-18")).toBe("2026-11-22"); // Wednesday → Sunday
+    expect(nextWeekStart("2026-11-21")).toBe("2026-11-22"); // Saturday → next day
+    expect(nextWeekStart("2026-11-22")).toBe("2026-11-29"); // Sunday → following Sunday
+  });
+
+  it("shows tasks from today up to one month ahead", () => {
+    expect(monthAhead("2026-11-18")).toBe("2026-12-18");
+    expect(monthAhead("2026-01-31")).toBe("2026-02-28");
+    expect(inMonthWindow("2026-11-17", "2026-11-18")).toBe(false);
+    expect(inMonthWindow("2026-11-18", "2026-11-18")).toBe(true);
+    expect(inMonthWindow("2026-12-18", "2026-11-18")).toBe(true);
+    expect(inMonthWindow("2026-12-19", "2026-11-18")).toBe(false);
   });
 });

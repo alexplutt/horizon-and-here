@@ -49,6 +49,26 @@ export function nextOccurrence(
   return d;
 }
 
+/** First Sunday strictly after `today`: the start of the next week (weeks run Sunday–Saturday). */
+export function nextWeekStart(today: string): string {
+  const day = parseISODate(today).getDay(); // 0 = Sunday
+  return addDays(today, 7 - day);
+}
+
+/** Same calendar day one month later (clamped to the month's last day). */
+export function monthAhead(today: string): string {
+  const d = parseISODate(today);
+  const target = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+  const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  target.setDate(Math.min(d.getDate(), last));
+  return toISODate(target);
+}
+
+/** Whether a date falls in the task list window: from today up to one month ahead. */
+export function inMonthWindow(date: string, today: string): boolean {
+  return date >= today && date <= monthAhead(today);
+}
+
 export type DueStatus = "done" | "overdue" | "today" | "tomorrow" | "later";
 
 export function dueStatus(

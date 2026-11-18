@@ -81,6 +81,7 @@ export function TaskRow({
   onEdit,
   compact = false,
   date,
+  later = false,
 }: {
   task: Task;
   today: string;
@@ -88,6 +89,8 @@ export function TaskRow({
   compact?: boolean;
   /** Day this row stands for (repeating tasks are marked done per day). */
   date?: string;
+  /** Falls after the current week: shown on a different background. */
+  later?: boolean;
 }) {
   const toggle = useToggleTask();
   const toggleOcc = useToggleOccurrence();
@@ -120,6 +123,7 @@ export function TaskRow({
       className={cn(
         "group animate-rise relative flex gap-3 rounded-md border bg-card p-3 shadow-paper transition-colors",
         status === "overdue" && "border-destructive/60",
+        later && !completed && "bg-later",
         completed && "bg-muted/60 shadow-none",
       )}
     >
@@ -161,7 +165,7 @@ export function TaskRow({
               Не выполнено
             </span>
           )}
-          {recurring && !compact && next && !(date && date < today) && (
+          {recurring && !compact && !date && next && (
             <span className="font-mono text-xs text-muted-foreground">
               {occDate === today
                 ? completed

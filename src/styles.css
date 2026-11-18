@@ -60,6 +60,7 @@
   --color-success-foreground: var(--success-foreground);
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
+  --color-later: var(--later);
   --color-panel: var(--panel);
   --color-panel-foreground: var(--panel-foreground);
   --color-panel-muted: var(--panel-muted);
@@ -111,6 +112,8 @@
   --success-foreground: oklch(0.985 0.009 88);
   --highlight: oklch(0.9 0.14 98);
   --highlight-foreground: oklch(0.23 0.02 60);
+  /* Tasks beyond the current week (from the next Sunday on) */
+  --later: oklch(0.945 0.022 230);
   --panel: oklch(0.23 0.02 60);
   --panel-foreground: oklch(0.95 0.015 85);
   --panel-muted: oklch(0.7 0.02 75);
@@ -157,6 +160,7 @@
   --accent-foreground: oklch(0.984 0.003 247.858);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.984 0.003 247.858);
+  --later: oklch(0.25 0.05 250);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.551 0.027 264.364);

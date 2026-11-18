@@ -37,3 +37,4 @@ use the editor.
 - One-day edits of repeating tasks live in `task_overrides` (task_id + date → title/description) and are applied only in day views via `src/lib/overrides.ts`; why: the series row stays the source for every other day.
 - The archive of past days is derived from tasks + task_completions + task_overrides in `src/lib/archive.ts` (no separate table); why: past data already lives there, so nothing has to be copied or moved.
 - Unfinished one-off tasks past their date appear only in the archive, never in the 2-day plan or the task list; why: the user decided overdue tasks should leave the plan instead of piling up as "просрочено".
+- The central task list ("Все"/"В работе") is derived day by day from today to one month ahead in `src/lib/upcoming.ts`, with repeating tasks expanded per day; why: mirrors the archive's per-day model so done-marks and one-day edits work the same way.
